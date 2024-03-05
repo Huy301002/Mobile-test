@@ -21,6 +21,7 @@ import Footer from "./footer/footer";
 import DateTimePicker from '@react-native-community/datetimepicker';
 const { height, width } = Dimensions.get('window');
 const HomeScreen = () => {
+  const [searchTerm, setSearchTerm] = useState('');
 
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
@@ -130,25 +131,63 @@ const HomeScreen = () => {
     // console.log(value); 
     return value;
   })
-
+ 
   const [data, SetData] = useState(dataResult);
 
   const handlePress = () => {
     navigation.navigate('product');
   };
+  const handleSearch = async () => {
+    try {
+      const response = await instance.get(`${baseUrl}/search?term=${searchTerm}`);
+      SetData(response.data.result);
+      setSearchTerm('');
+    } catch (error) {
+      if (error.response) {
+        
+        console.error("Response data:", error.response.data);
+        console.error("Response status:", error.response.status);
+        console.error("Response headers:", error.response.headers);
+      } else if (error.request) {
+        
+        console.error("No response received:", error.request);
+      } else {
+       
+        console.error("Error during request setup:", error.message);
+      }
+    }
+    
+  };
 
   const renderItem = ({ item, index }) => {
+   
+    const villaName = item.villa_name || '';
+    const address = item.address || '';
+    const area = item.area || '';
+  
+  
+    const lowerCaseSearchTerm = searchTerm ? searchTerm.toLowerCase() : '';
+    const isMatch = (
+      villaName.toLowerCase().includes(lowerCaseSearchTerm) ||
+      address.toLowerCase().includes(lowerCaseSearchTerm) ||
+      area.toLowerCase().includes(lowerCaseSearchTerm)
+    );
+  
+    if (searchTerm && !isMatch) {
+      return null;
+    }
+  
     return (
-
       <View>
         <Image
           source={item.image}
           style={{ height: 500, width: screenWidth }}
         />
       </View>
-
     );
   };
+  
+
 
   // Handle Scroll
   const handleScroll = (event) => {
@@ -213,47 +252,26 @@ const HomeScreen = () => {
 
           {/* Search Input */}
           <View style={styles.inputContainer}>
-            <Ionicons name="search" size={20} color="#26AAA0" />
-            <TextInput
-              style={styles.input}
-              placeholder="Search 'Thailand, Asia'"
-            />
-          </View>
+  <Ionicons name="search" size={20} color="#26AAA0" />
+  <TextInput
+    style={styles.input}
+    placeholder="Search"
+    value={searchTerm}
+    onChangeText={(text) => setSearchTerm(text)}
+  />
+</View>
 
-          {/* Date Range Input... */}
-          <View style={styles.dateRangeContainer}>
-            <View style={styles.dateInput}>
-              <TouchableOpacity onPress={() => setShowStartDatePicker(true)}>
-                <Text>{startDate ? startDate.toDateString() : 'Select Start Date'}</Text>
-              </TouchableOpacity>
-              {showStartDatePicker && (
-                <DateTimePicker
-                  value={startDate || new Date()}
-                  mode="date"
-                  display="default"
-                  onChange={handleStartDateChange}
-                />
-              )}
-            </View>
-            <View style={styles.dash} />
-            <View style={styles.dateInput}>
-              <TouchableOpacity onPress={() => setShowEndDatePicker(true)}>
-                <Text>{endDate ? endDate.toDateString() : 'Select End Date'}</Text>
-              </TouchableOpacity>
-              {showEndDatePicker && (
-                <DateTimePicker
-                  value={endDate || new Date()}
-                  mode="date"
-                  display="default"
-                  onChange={handleEndDateChange}
-                />
-              )}
-            </View>
-          </View>
 
-          <TouchableOpacity style={styles.button}>
-            <Text style={styles.buttonText}>Find Hotels</Text>
-          </TouchableOpacity>
+         
+
+<TouchableOpacity
+  style={styles.button}
+  onPress={handleSearch}
+>
+  <Text style={styles.buttonText}>Find Villa</Text>
+</TouchableOpacity>
+
+
         </View>
 
         <View

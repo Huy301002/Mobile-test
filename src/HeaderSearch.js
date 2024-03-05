@@ -7,12 +7,32 @@
         <View style={styles.inputContainer}>
 
             <TextInput {...rest} style={styles.input} />
-            <TouchableOpacity style={styles.iconContainer}>
+            <TouchableOpacity style={styles.iconContainer}  onPress={handleSearch}>
                 <Ionicons name={icon} size={24} color="#999" />
             </TouchableOpacity>
         </View>
     );
-
+    const handleSearch = async () => {
+        try {
+          const response = await instance.get(`${baseUrl}/search?term=${searchTerm}`);
+          SetData(response.data.result);
+          setSearchTerm('');
+        } catch (error) {
+          if (error.response) {
+            
+            console.error("Response data:", error.response.data);
+            console.error("Response status:", error.response.status);
+            console.error("Response headers:", error.response.headers);
+          } else if (error.request) {
+            
+            console.error("No response received:", error.request);
+          } else {
+           
+            console.error("Error during request setup:", error.message);
+          }
+        }
+        
+      };
     const SearchHeader = () => {
         const navigation = useNavigation();
         
@@ -29,6 +49,7 @@
                     placeholderTextColor="rgb(44, 44, 44)"
                     icon="search"
                     style={styles.input}
+                    onChangeText={(text) => setSearchTerm(text)}
                 />
                 <TouchableOpacity style={styles.menuButton}>
                     <Ionicons name="menu" size={30} color="#26AAA0" />
